@@ -29,19 +29,7 @@ jobs:
       env:
         HACKMD_API_KEY: ${{ secrets.HACKMD_API_KEY }}
       run: |
-        import requests
-        import json
-
-        url = "https://api.hackmd.io/v1/notes"
-        headers = {"Authorization": f"Bearer {os.getenv('HACKMD_API_KEY')}"}
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch notes: {response.status_code} {response.text}")
-        
-        notes = response.json()
-        with open("hackmd_notes.json", "w") as f:
-            json.dump(notes, f, indent=4)
-
+        python3 test.py
     # Step 5: Commit and push the changes
     - name: Commit and push changes
       env:
