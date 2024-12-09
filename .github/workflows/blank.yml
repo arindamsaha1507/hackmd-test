@@ -1,0 +1,54 @@
+name: Fetch HackMD Notes and Commit
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  fetch-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python (or your preferred runtime)
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: pip install requests
+
+    # Step 4: Fetch data from HackMD API
+    - name: Fetch HackMD Notes
+      env:
+        HACKMD_API_KEY: ${{ secrets.HACKMD_API_KEY }}
+      run: |
+        import requests
+        import json
+
+        url = "https://api.hackmd.io/v1/notes"
+        headers = {"Authorization": f"Bearer {os.getenv('HACKMD_API_KEY')}"}
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch notes: {response.status_code} {response.text}")
+        
+        notes = response.json()
+        with open("hackmd_notes.json", "w") as f:
+            json.dump(notes, f, indent=4)
+
+    # Step 5: Commit and push the changes
+    - name: Commit and push changes
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add hackmd_notes.json
+        git commit -m "Update HackMD notes"
+        git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
