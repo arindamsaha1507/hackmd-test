@@ -14,23 +14,16 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v3
 
-    # Step 2: Set up Python (or your preferred runtime)
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    # Step 3: Install dependencies
-    - name: Install dependencies
-      run: pip install requests
-
-    # Step 4: Fetch data from HackMD API
+    # Step 2: Fetch data from HackMD API
     - name: Fetch HackMD Notes
       env:
         HACKMD_API_KEY: ${{ secrets.HACKMD_API_KEY }}
       run: |
-        python3 test.py
-    # Step 5: Commit and push the changes
+        curl -sSL -H "Authorization: Bearer $HACKMD_API_KEY" \
+          https://api.hackmd.io/v1/notes \
+          -o hackmd_notes.json
+
+    # Step 3: Commit and push the changes
     - name: Commit and push changes
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
